@@ -1,0 +1,118 @@
+# Create a resource group in the East US region
+az group create --name myResourceGroup --location eastus
+
+# Create a new Azure Container Registry with the name "newregistryAKS1001" and the Basic SKU
+az acr create --resource-group myResourceGroup --name newregistryAKS1001 --sku Basic
+
+# Set the current subscription to "797bd68f-8ff2-4ce3-a077-0f0d120015dc"
+az account set --subscription "797bd68f-8ff2-4ce3-a077-0f0d120015dc"
+
+# Log in to the Azure Container Registry "newregistryAKS1001"
+az acr login --name newregistryAKS1001
+
+# Log in to the Docker registry "newregistryaks1001.azurecr.io"
+docker login newregistryaks1001.azurecr.io
+
+# Pull the "hello-world" image from the Microsoft Container Registry
+docker pull mcr.microsoft.com/hello-world
+
+# Tag the "hello-world" image with the repository and version in the Azure Container Registry
+docker tag mcr.microsoft.com/hello-world newregistryaks1001.azurecr.io/hello-world:v1
+
+# Push the tagged image to the Azure Container Registry
+docker push newregistryaks1001.azurecr.io/hello-world:v1
+
+# Remove the local image with the tag "hello-world:v1"
+docker rmi /hello-world:v1
+
+# Show the latest 3 tags for the repository "hello-world" in the Azure Container Registry "newregistryaks1001"
+az acr repository show-tags --name newregistryaks1001 --repository hello-world --orderby time_desc --output table | select -First 3
+
+# Run a container using the image "newregistryaks1001.azurecr.io/hello-world:v1"
+docker run newregistryaks1001.azurecr.io/hello-world:v1
+
+
+
+#Create a new Resource Group
+az network vnet create --name "vnet1" --resource-group RG-Az1001 --address-prefixes 10.1.0.0/16
+#Create a new Virtual Network
+az network vnet subnet create --name "subnet1" --resource-group RG-Az1001 --vnet-name "vnet1" --address-prefixes  10.0.0.0/24
+
+
+
+#Create a new AKS cluster 
+az aks create --resource-group RG-Az1001 --name aksNewcluster1001 --node-count 2 --node-vm-size Standard_DS2_v2 --enable-addons monitoring --generate-ssh-keys
+
+
+#Get the credentials for the cluster
+az aks get-credentials --resource-group RG-Az1001 --name aksNewcluster1001 --overwrite-existing
+
+
+#Get all the Deployments
+kubectl get deployments --all-namespaces=true
+
+#kubectl get pods -
+kubectl get nodes
+
+#enable the Azure Policy add-on
+az aks enable-addons --addons azure-policy --resource-group RG-Az1001 --name aksNewcluster1001
+
+#use host-based encryption on new cluster
+az aks create --name aksNewcluster1001 --resource-group RG-Az1001 -s Standard_DS2_v2 -l westus2 --enable-encryption-at-host
+
+az aks nodepool add --name hostencrypt --cluster-name aksNewcluster1001 --resource-group RG-Az1001 -s Standard_DS2_v2 --enable-encryption-at-host
+
+#create a new aks namespace cli
+kubectl create namespace aks-namespace
+#Create a new namespace using a yaml file
+kubectl create -f ./namespace.yaml
+
+#create a custom storage class
+#kubectl create -f ./storageclass.yaml
+kubectl apply -f premium-storage-class.yaml
+
+#create a new persistent volume
+kubectl apply -f persistent-volume-claim-5g.yaml
+
+#create a new pod with storage mount
+
+
+
+kubectl get pods
+kubectl exec -i nginx -- sh -c "ls /mnt/azure"
+
+
+kubectl delete pod nginx
+kubectl apply -f pod-with-storage-mount.yaml
+kubectl exec -i nginx -- sh -c "ls /mnt/azure"
+
+
+
+
+
+kubectl create namespace demo-deployment
+kubectl get namespaces
+
+
+az aks show --resource-group RG-Az1001 --name aksNewcluster1001 --query agentPoolProfiles
+az aks scale --resource-group RG-Az1001 --name aksNewcluster1001 --node-count 2 --nodepool-name pool1
+
+
+kubectl apply -f nginx-deployment.yaml --namespace demo-deployment
+
+
+kubectl get deployments --namespace demo-deployment
+kubectl get pods --namespace demo-deployment
+kubectl get rs --namespace demo-deployment
+
+
+kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1 --namespace demo-deployment
+
+
+
+
+az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1 
+--vm-set-type VirtualMachineScaleSets --load-balancer-sku standard --enable-cluster-autoscaler --min-count 1 --max-count 3
+
+
+az aks update --resource-group RG-Az1001 --name aksNewcluster1001 --enable-cluster-autoscaler --min-count 1 --max-count 3

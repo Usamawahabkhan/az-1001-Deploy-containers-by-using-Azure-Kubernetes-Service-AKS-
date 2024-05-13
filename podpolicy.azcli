@@ -1,0 +1,41 @@
+# This script demonstrates the deployment and management of containers using Azure Kubernetes Service (AKS).
+# It creates an AKS cluster, enables Azure Policy add-on, and deploys an nginx container with privileged access.
+
+# Set the variables for the AKS resource group and location
+AKSRG='RG-Az1001'
+LOCATION='eastus'
+
+# Create the resource group for AKS (uncomment the line below to create the resource group)
+# az group create --name $AKSRG --location $LOCATION
+
+# Set the current subscription to "797bd68f-8ff2-4ce3-a077-0f0d120015dc"
+az account set --subscription "797bd68f-8ff2-4ce3-a077-0f0d120015dc"
+
+# Set the variables for AKS cluster name and node count
+AKSNAME='aks-01'
+NODE_COUNT=1
+
+# Create the AKS cluster with managed identity and generate SSH keys
+az aks create --resource-group $AKSRG --name $AKSNAME --enable-managed-identity --node-count $NODE_COUNT --generate-ssh-keys
+
+# Get the credentials for the AKS cluster
+az aks get-credentials --resource-group $AKSRG --name $AKSNAME
+
+# List the nodes in the AKS cluster
+kubectl get nodes
+
+# Set the variables for the AKS resource group and name
+AKSRG='aks-01-RG'
+AKSNAME='aks-01'
+
+# Enable the Azure Policy add-on for AKS
+az aks enable-addons --addons azure-policy --name $AKSNAME --resource-group $AKSRG
+
+# List the pods in the kube-system namespace
+kubectl get pods --namespace kube-system
+
+# List the pods in the gatekeeper-system namespace
+kubectl get pods --namespace gatekeeper-system
+
+# Deploy the nginx container with privileged access
+kubectl apply -f nginx-privileged.yaml
